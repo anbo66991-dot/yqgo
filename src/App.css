@@ -1301,7 +1301,6 @@ button {
   line-height: 1.9;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-line-clamp: 3;
 }
 
 .request-card-bottom {
@@ -1506,3 +1505,67 @@ line-clamp: 3;
     text-align: right;
   }
 }
+
+
+/* ===== 一起去：陪伴者搜尋、提案與委託管理 ===== */
+.marketplace-section { padding: 84px 30px 92px; background: #f4f2eb; }
+.marketplace-section > .section-heading { margin-bottom: 30px; }
+.marketplace-tabs { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin:0 auto 28px; }
+.marketplace-tab { border:1px solid #deded5; border-radius:24px; padding:11px 20px; background:#fffefa; color:#68746b; font-size:13px; }
+.marketplace-tab.active { border-color:#304b3b; background:#304b3b; color:white; }
+.marketplace-notice,.marketplace-loading { max-width:1000px; margin:0 auto 18px; padding:12px 16px; border-radius:10px; background:#fffefa; color:#59704f; font-size:13px; overflow-wrap:anywhere; }
+.marketplace-filters { display:grid; grid-template-columns:2fr 1fr auto; gap:12px; max-width:1100px; margin:0 auto 22px; padding:17px; border:1px solid #e9e6dc; border-radius:14px; background:#fffefa; }
+.marketplace-filters input,.proposal-form input,.proposal-form textarea { width:100%; min-width:0; padding:12px 14px; border:1px solid #e5e1d7; border-radius:9px; background:#fff; color:#405144; font:inherit; font-size:13px; }
+.marketplace-filters button,.marketplace-secondary { padding:10px 15px; border:1px solid #deded5; border-radius:9px; background:#fffefa; color:#667365; font-size:12px; }
+.marketplace-empty { max-width:1100px; margin:0 auto; padding:40px 22px; border:1px solid #e9e6dc; border-radius:15px; background:#fffefa; color:#899188; text-align:center; font-size:13px; }
+.companion-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; max-width:1100px; margin:0 auto; }
+.companion-card { min-width:0; padding:24px; border:1px solid #e9e6dc; border-radius:16px; background:#fffefa; box-shadow:0 8px 26px #35433308; }
+.companion-avatar { display:grid; place-items:center; width:54px; height:54px; border-radius:18px; background:#f9e9dc; color:#d77a50; font-size:24px; font-weight:800; }
+.companion-avatar.large { width:68px; height:68px; margin:0 auto 12px; }
+.companion-card h3 { margin:14px 0 3px; color:#405144; font-size:18px; }
+.companion-city { margin:0 0 12px; color:#d77a50; font-size:12px; }
+.companion-intro { display:-webkit-box; overflow:hidden; min-height:48px; margin:0 0 13px; color:#7d887e; font-size:12px; line-height:1.9; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; }
+.companion-tags { display:flex; flex-wrap:wrap; gap:6px; min-height:26px; margin-bottom:16px; }
+.companion-tags span { padding:4px 9px; border-radius:15px; background:#edf1e9; color:#60765c; font-size:10px; }
+.marketplace-primary { display:inline-flex; justify-content:center; align-items:center; min-height:40px; padding:10px 17px; border:0; border-radius:22px; background:#304b3b; color:#fff; font-size:12px; font-weight:700; cursor:pointer; }
+.marketplace-primary:disabled { opacity:.55; cursor:not-allowed; }
+.companion-card .marketplace-primary { width:100%; }
+.marketplace-list { display:flex; flex-direction:column; gap:12px; max-width:1050px; margin:0 auto; }
+.marketplace-list-card { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 20px; border:1px solid #e9e6dc; border-radius:13px; background:#fffefa; }
+.marketplace-list-card strong { color:#405144; font-size:14px; }
+.marketplace-list-card p { margin:6px 0; color:#7d887e; font-size:12px; }
+.marketplace-list-card small { color:#9a9f96; font-size:11px; }
+.marketplace-list-main { flex:1; min-width:0; }
+.marketplace-list-actions { display:flex; flex-wrap:wrap; gap:7px; }
+.proposal-status { flex-shrink:0; padding:5px 10px; border-radius:20px; background:#edf1e9; color:#60765c; font-size:11px; }
+.status-accepted { background:#e6f1e5; color:#3f7544; }
+.status-rejected,.status-withdrawn { background:#f3eee9; color:#8b7668; }
+.marketplace-danger { padding:9px 12px; border:1px solid #efd7cc; border-radius:9px; background:#fff8f5; color:#b76649; font-size:11px; }
+.companion-settings { max-width:900px; margin:0 auto; padding:28px; border:1px solid #e9e6dc; border-radius:16px; background:#fffefa; }
+.companion-settings h3 { margin:0 0 8px; color:#405144; }
+.companion-settings > p { color:#899188; font-size:13px; line-height:1.8; }
+.marketplace-check { display:flex; align-items:center; gap:10px; margin:16px 0; color:#526451; font-size:13px; }
+.marketplace-check input { width:17px; height:17px; accent-color:#304b3b; }
+.marketplace-upload { display:flex; flex-direction:column; gap:10px; margin:22px 0; color:#526451; font-size:13px; font-weight:700; }
+.marketplace-upload input { font-size:12px; }
+.media-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0; }
+.media-item { display:flex; min-width:0; flex-direction:column; gap:7px; padding:9px; border:1px solid #eeeae1; border-radius:10px; background:#fff; }
+.media-item img,.media-item video { width:100%; max-height:170px; border-radius:7px; object-fit:cover; }
+.media-item audio { width:100%; }
+.media-item span { overflow:hidden; color:#69766b; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.marketplace-overlay { position:fixed; inset:0; z-index:10000; display:flex; align-items:center; justify-content:center; padding:18px; background:#29251f99; backdrop-filter:blur(4px); }
+.marketplace-dialog { position:relative; width:100%; max-width:650px; max-height:88vh; overflow-y:auto; padding:34px; border-radius:18px; background:#fffdf9; box-shadow:0 20px 70px #0003; }
+.marketplace-dialog h2 { margin:8px 0 10px; color:#405144; font-size:23px; }
+.marketplace-dialog h3 { margin:24px 0 12px; color:#405144; font-size:16px; }
+.marketplace-dialog h4 { margin:20px 0 5px; color:#526451; font-size:13px; }
+.marketplace-dialog p { color:#718073; font-size:13px; line-height:1.9; white-space:pre-wrap; overflow-wrap:anywhere; }
+.marketplace-close { position:absolute; top:10px; right:15px; border:0; background:transparent; color:#8c8276; font-size:28px; }
+.proposal-card { margin:12px 0; padding:17px; border:1px solid #e9e6dc; border-radius:12px; background:#fff; }
+.proposal-card strong { color:#405144; }
+.proposal-card .marketplace-primary { margin-top:8px; }
+.proposal-form { display:flex; flex-direction:column; gap:12px; }
+.proposal-form label { display:flex; flex-direction:column; gap:7px; color:#526451; font-size:12px; font-weight:700; }
+.proposal-form textarea { min-height:88px; resize:vertical; }
+.proposal-form .marketplace-primary { margin-top:8px; }
+@media(max-width:900px) { .companion-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .marketplace-filters { grid-template-columns:1fr 1fr; } .marketplace-filters button { grid-column:1/-1; } }
+@media(max-width:600px) { .marketplace-section { padding:64px 18px; } .marketplace-tabs { justify-content:flex-start; } .marketplace-tab { padding:10px 13px; font-size:11px; } .marketplace-filters,.companion-grid,.media-grid { grid-template-columns:1fr; } .marketplace-list-card { align-items:flex-start; flex-direction:column; } .marketplace-list-actions { width:100%; } .marketplace-dialog { padding:30px 20px 24px; } .companion-settings { padding:20px; } }

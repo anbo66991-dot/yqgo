@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import Marketplace from './components/Marketplace'
 import './App.css'
 
 type AuthMode = 'login' | 'signup'
@@ -34,6 +35,15 @@ type TravelRequest = {
   budget_max: number | null
   status: string
   created_at: string
+}
+
+type ExistingProposal = {
+  id: string
+  introduction: string
+  plan: string
+  price: number
+  note: string | null
+  status: string
 }
 function App() {
   const [activeTab, setActiveTab] = useState<'find' | 'offer'>('find')
@@ -86,6 +96,17 @@ const [requestKeyword, setRequestKeyword] = useState('')
 const [requestStartDate, setRequestStartDate] = useState('')
 const [requestBudgetLimit, setRequestBudgetLimit] = useState('')
 const [selectedRequest, setSelectedRequest] = useState<TravelRequest | null>(null)
+const [isCompanionAccount, setIsCompanionAccount] = useState(false)
+const [proposalCheckLoading, setProposalCheckLoading] = useState(false)
+const [existingProposal, setExistingProposal] = useState<ExistingProposal | null>(null)
+const [proposalSaving, setProposalSaving] = useState(false)
+const [proposalMessage, setProposalMessage] = useState('')
+const [proposalForm, setProposalForm] = useState({
+  introduction: '',
+  plan: '',
+  price: '',
+  note: '',
+})
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null)
@@ -98,6 +119,116 @@ const [selectedRequest, setSelectedRequest] = useState<TravelRequest | null>(nul
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // 開啟委託詳情時，確認陪伴者資格及是否已送過提案
+  useEffect(() => {
+    let cancelled = false
+
+    const checkProposalEligibility = async () => {
+      setIsCompanionAccount(false)
+      setExistingProposal(null)
+      setProposalMessage('')
+      setProposalForm({ introduction: '', plan: '', price: '', note: '' })
+
+      if (!user || !selectedRequest || selectedRequest.member_id === user.id) {
+        return
+      }
+
+      setProposalCheckLoading(true)
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('member_profiles')
+          .select('is_companion')
+          .eq('id', user.id)
+          .single()
+
+        if (profileError) throw profileError
+
+        const { data: proposal, error: proposalError } = await supabase
+          .from('proposals')
+          .select('id,introduction,plan,price,note,status')
+          .eq('request_id', selectedRequest.id)
+          .eq('member_id', user.id)
+          .maybeSingle()
+
+        if (proposalError) throw proposalError
+        if (cancelled) return
+
+        setIsCompanionAccount(profile?.is_companion === true)
+        setExistingProposal(proposal as ExistingProposal | null)
+      } catch (error) {
+        if (!cancelled) {
+          setProposalMessage(
+            error instanceof Error ? error.message : '讀取提案狀態失敗，請稍後再試。'
+          )
+        }
+      } finally {
+        if (!cancelled) setProposalCheckLoading(false)
+      }
+    }
+
+    checkProposalEligibility()
+    return () => {
+      cancelled = true
+    }
+  }, [user, selectedRequest])
+
+  // 提交陪伴提案
+  const submitProposal = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!user || !selectedRequest) return
+    if (selectedRequest.member_id === user.id) {
+      setProposalMessage('這是你自己發布的委託，不能向自己提交提案。')
+      return
+    }
+    if (!isCompanionAccount) {
+      setProposalMessage('請先到「陪伴者檔案」啟用陪伴者身分。')
+      return
+    }
+
+    const price = Number(proposalForm.price)
+    if (!Number.isInteger(price) || price < 0) {
+      setProposalMessage('請輸入有效的整數報價，且不可小於 0。')
+      return
+    }
+    if (!proposalForm.introduction.trim() || !proposalForm.plan.trim()) {
+      setProposalMessage('請填寫自我介紹與服務計畫。')
+      return
+    }
+
+    setProposalSaving(true)
+    setProposalMessage('')
+    try {
+      const { data, error } = await supabase
+        .from('proposals')
+        .insert({
+          request_id: selectedRequest.id,
+          member_id: user.id,
+          introduction: proposalForm.introduction.trim(),
+          plan: proposalForm.plan.trim(),
+          price,
+          note: proposalForm.note.trim() || null,
+          status: 'pending',
+        })
+        .select('id,introduction,plan,price,note,status')
+        .single()
+
+      if (error) throw error
+      setExistingProposal(data as ExistingProposal)
+      setProposalMessage('提案已成功送出！委託人可以在「我的委託」查看。')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '請稍後再試。'
+      setProposalMessage(
+        message.includes('unique_member_request')
+          ? '你已經對這筆委託提交過提案，請到「我送出的提案」查看。'
+          : `提交失敗：${message}`
+      )
+    } finally {
+      setProposalSaving(false)
+    }
+  }
+
 // 讀取公開旅遊委託
 const loadPublicRequests = useCallback(async () => {
   setRequestsLoading(true)
@@ -455,6 +586,7 @@ const saveRequest = async (e: FormEvent) => {
         <nav className="nav-links">
           <a href="#how-it-works">如何使用</a>
           <a href="#requests">公開委託</a>
+          {user && <a href="#marketplace">陪伴者與管理</a>}
           <a href="#features">平台特色</a>
           <a href="#safety">安全與評價</a>
         </nav>
@@ -798,6 +930,8 @@ const saveRequest = async (e: FormEvent) => {
             </>
           )}
         </section>
+
+        {user && <Marketplace user={user} />}
 
         <section className="features-section" id="features">
           <div className="section-heading">
@@ -1180,9 +1314,83 @@ const saveRequest = async (e: FormEvent) => {
         <p>{selectedRequest.description}</p>
       </div>
 
-      <p className="request-detail-note">
-        想進一步了解這筆委託，可以先記下需求內容；後續將逐步加入提案與聯絡功能。
-      </p>
+      {user && selectedRequest.member_id === user.id ? (
+        <div className="request-detail-note">
+          這是你發布的委託。請到「我的委託」查看陪伴者提交的提案。
+        </div>
+      ) : proposalCheckLoading ? (
+        <p className="request-detail-note">正在確認提案資格...</p>
+      ) : existingProposal ? (
+        <div className="request-detail-note">
+          <h3>你已提交過提案</h3>
+          <p>目前狀態：{existingProposal.status === 'pending' ? '等待委託人回覆' : existingProposal.status}</p>
+          <p>你的報價：NT$ {existingProposal.price.toLocaleString('zh-TW')}</p>
+        </div>
+      ) : !isCompanionAccount ? (
+        <div className="request-detail-note">
+          請先登入並到「陪伴者檔案」啟用陪伴者身分，才能提交提案。
+        </div>
+      ) : (
+        <form className="proposal-submit-form" onSubmit={submitProposal}>
+          <h3>提交陪伴提案</h3>
+          <p className="auth-description">向委託人介紹你自己，並說明預計如何陪伴這趟旅程。</p>
+
+          <label htmlFor="proposal-introduction">自我介紹</label>
+          <textarea
+            id="proposal-introduction"
+            rows={3}
+            maxLength={1000}
+            required
+            value={proposalForm.introduction}
+            onChange={(event) => setProposalForm({ ...proposalForm, introduction: event.target.value })}
+            placeholder="簡單介紹你的經驗、個性或相關專長"
+          />
+
+          <label htmlFor="proposal-plan">服務計畫</label>
+          <textarea
+            id="proposal-plan"
+            rows={4}
+            maxLength={2000}
+            required
+            value={proposalForm.plan}
+            onChange={(event) => setProposalForm({ ...proposalForm, plan: event.target.value })}
+            placeholder="描述你預計如何安排及陪伴這趟旅程"
+          />
+
+          <label htmlFor="proposal-price">報價（新台幣）</label>
+          <input
+            id="proposal-price"
+            type="number"
+            min="0"
+            step="1"
+            required
+            value={proposalForm.price}
+            onChange={(event) => setProposalForm({ ...proposalForm, price: event.target.value })}
+            placeholder="例如：2000"
+          />
+
+          <label htmlFor="proposal-note">備註（選填）</label>
+          <textarea
+            id="proposal-note"
+            rows={2}
+            maxLength={1000}
+            value={proposalForm.note}
+            onChange={(event) => setProposalForm({ ...proposalForm, note: event.target.value })}
+            placeholder="其他想讓委託人知道的事項"
+          />
+
+          {proposalMessage && <p className="auth-message" role="status">{proposalMessage}</p>}
+
+          <button className="auth-submit" type="submit" disabled={proposalSaving}>
+            {proposalSaving ? '送出中...' : '確認提交提案'}
+          </button>
+        </form>
+      )}
+
+      {proposalMessage && (existingProposal || !isCompanionAccount) && (
+        <p className="auth-message" role="status">{proposalMessage}</p>
+      )}
+
       <button
         type="button"
         className="auth-submit"
